@@ -68,8 +68,9 @@ function printHelp () {
 
 # Ask user for confirmation to proceed
 function askProceed () {
-  read -p "Continue? [Y/n] " ans
-  case "$ans" in
+#  read -p "Continue? [Y/n] " ans
+
+  case "Y" in
     y|Y|"" )
       echo "proceeding ..."
     ;;
