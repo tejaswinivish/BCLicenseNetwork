@@ -70,14 +70,6 @@ joinChannel () {
 			echo
 			done
 	done
-	# for org in 1 2; do
-	    # for peer in 0 1; do
-		# joinChannelWithRetry $peer $org
-		# echo "===================== peer${peer}.org${org} joined on the channel \"$CHANNEL_NAME\" ===================== "
-		# sleep $DELAY
-		# echo
-	    # done
-	# done
 }
 
 ## Create channel
@@ -94,11 +86,18 @@ updateAnchorPeers 0 1
 echo "Updating anchor peers for org2..."
 updateAnchorPeers 0 2
 
-## Install chaincode on peer0.org1 and peer0.org2
-echo "Installing chaincode on peer0.org1..."
-installChaincode 0 1
-echo "Install chaincode on peer0.org2..."
-installChaincode 0 2
+#installing nodes on org1
+for peer in 0 1 2 3 4; do
+echo "Installing chaincode on peer${peer}.org1..."
+installChaincode $peer 1
+done
+
+#installing nodes on org2
+for peer in 0 1; do
+echo "Installing chaincode on peer${peer}.org2..."
+installChaincode $peer 2
+done
+
 
 # Instantiate chaincode on peer0.org2
 echo "Instantiating chaincode on peer0.org2..."
@@ -111,10 +110,6 @@ chaincodeQuery 0 1 100
 # Invoke chaincode on peer0.org1
 echo "Sending invoke transaction on peer0.org1..."
 chaincodeInvoke 0 1
-
-## Install chaincode on peer1.org2
-echo "Installing chaincode on peer1.org2..."
-installChaincode 1 2
 
 # Query on chaincode on peer1.org2, check if the result is 90
 echo "Querying chaincode on peer1.org2..."
