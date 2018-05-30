@@ -56,8 +56,9 @@ let Chaincode = class {
     console.info('============= START : Initialize Ledger ===========');
     let licenses = [];
     licenses.push({
-      licenseKey:  'key00001',
-	  timestamp: '00000010101010'
+      licenseKey:  'abcdefg012345',
+	  timestamp: '00000010101010',
+	  owner: 'available'
     });
 
     for (let i = 0; i < licenses.length; i++) {
@@ -68,28 +69,10 @@ let Chaincode = class {
     console.info('============= END : Initialize Ledger ===========');
   }
 
-/*   async createCar(stub, args) {
-    console.info('============= START : Create Car ===========');
-    if (args.length != 5) {
-      throw new Error('Incorrect number of arguments. Expecting 5');
-    }
-
-    var car = {
-      docType: 'car',
-      make: args[1],
-      model: args[2],
-      color: args[3],
-      owner: args[4]
-    };
-
-    await stub.putState(args[0], Buffer.from(JSON.stringify(car)));
-    console.info('============= END : Create Car ===========');
-  } */
-
   async queryAllTokens(stub, args) {
 
-    let startKey = 'peer0.org1';
-    let endKey = 'peer4.org1';
+    let startKey = 'licenseToken0';
+    let endKey = 'licenseToken2';
 
     let iterator = await stub.getStateByRange(startKey, endKey);
 
@@ -128,8 +111,8 @@ let Chaincode = class {
     let licenseBytes = await stub.getState(args[0]);
     let license = JSON.parse(licenseBytes);
     license.owner = args[1];
-
-    await stub.putState(args[0], Buffer.from(JSON.stringify(car)));
+	
+    await stub.putState(args[0], Buffer.from(JSON.stringify(license)));
     console.info('============= END : changeLicenseOwner ===========');
   }
 };
