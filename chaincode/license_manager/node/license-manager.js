@@ -1,18 +1,24 @@
+/*
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+*/
+
 'use strict';
 const shim = require('fabric-shim');
 const util = require('util');
 
 let Chaincode = class {
 
-  // The Init method is called when the Smart Contract 'license_manager' is instantiated by the blockchain network
+  // The Init method is called when the Smart Contract 'license-manager' is instantiated by the blockchain network
   // Best practice is to have any Ledger initialization in separate function -- see initLedger()
   async Init(stub) {
-    console.info('=========== Instantiated license_manager chaincode ===========');
+    console.info('=========== Instantiated license-manager chaincode ===========');
     return shim.success();
   }
 
   // The Invoke method is called as a result of an application request to run the Smart Contract
-  // 'license_manager'. The calling application program has also specified the particular smart contract
+  // 'license-manager'. The calling application program has also specified the particular smart contract
   // function to be called, with arguments
   async Invoke(stub) {
     let ret = stub.getFunctionAndParameters();
@@ -49,21 +55,16 @@ let Chaincode = class {
   async initLedger(stub, args) {
     console.info('============= START : Initialize Ledger ===========');
     let licenses = [];
-	
     licenses.push({
-      License: 'licensenumber1',
-      timestamp: '444747493928'
+      licenseKey:  'key00001',
+	  timestamp: '00000010101010'
     });
-	
-    licenses.push({
-     License: 'licensenumber2',
-     timestamp: '4458587493928'
-    });
-   
-   
-   await stub.putState('peer0.org1' + Buffer.from(JSON.stringify(licenses[0]));
-   await stub.putState('peer1.org1' + Buffer.from(JSON.stringify(licenses[1]));
-   
+
+    for (let i = 0; i < licenses.length; i++) {
+      licenses[i].docType = 'licenseToken';
+      await stub.putState('licenseToken' + i, Buffer.from(JSON.stringify(licenses[i])));
+      console.info('Added <--> ', licenses[i]);
+    }
     console.info('============= END : Initialize Ledger ===========');
   }
 
