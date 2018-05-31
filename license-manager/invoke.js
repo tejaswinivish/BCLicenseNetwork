@@ -52,8 +52,8 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	var request = {
 		//targets: let default to the peer assigned to the client
 		chaincodeId: 'license-manager',
-		fcn: '',
-		args: [''],
+		fcn: 'findAvailableToken',
+		args: ['Teju'],
 		chainId: 'mychannel',
 		txId: tx_id
 	};
