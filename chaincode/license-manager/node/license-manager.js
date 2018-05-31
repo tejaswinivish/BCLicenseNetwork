@@ -51,7 +51,7 @@ let Chaincode = class {
     let licenses = [];
     licenses.push({
       licenseKey:  'abcdefg012345',
-	  timestamp: '00000010101010',
+	  timestamp: '00000000000000',
 	  owner: 'available'
     });
 
@@ -104,7 +104,9 @@ let Chaincode = class {
 
     let licenseBytes = await stub.getState(args[0]);
     let license = JSON.parse(licenseBytes);
-	license.timestamp = '2000000000';
+    var availabilityTimestamp = Date.now();
+    availabilityTimestamp = availabilityTimestamp + 20000;
+	license.timestamp = availabilityTimestamp;
 	license.owner = args[1];
 	
     await stub.putState(args[0], Buffer.from(JSON.stringify(license)));
@@ -112,98 +114,87 @@ let Chaincode = class {
   }
   
   async findAvailableToken(stub, args) {
-	  console.info('============= START : findAvailableToken ===========');
-	  let startKey = 'token0';
-	  let endKey = 'token10';
-
-      let iterator = await stub.getStateByRange(startKey, endKey);
-	  
-	  let allResults = [];
-	  let availableToken=null;
+	console.info('============= START : findAvailableToken ===========');
+	let startKey = 'token0';
+	let endKey = 'token10';
+    let iterator = await stub.getStateByRange(startKey, endKey);
+	let allResults = [];
+	let availableToken=null;
+	
+	//Check if there are any available license tokens
 	while (true) {
 		console.info('********************** In first Loop *******************');
-      let res = await iterator.next();
-
-      if (res.value && res.value.value.toString()) {
-        let jsonRes = {};
-        console.log(res.value.value.toString('utf8'));
-
-        jsonRes.Key = res.value.key;
-        try {
-          let tempToken = JSON.parse(res.value.value.toString('utf8'));
-		  if(tempToken.owner==='available') {
-			  availableToken = res.value.key;
-			  break;
-		  }
-        } catch (err) {
-          console.log(err);
-          jsonRes.Record = res.value.value.toString('utf8');
-        }
-        //allResults.push(jsonRes);
-      }
-      if (res.done) {
-        console.log('end of data');
-        await iterator.close();
-        console.info('End of First loop');
-        break;
-      }
+        let res = await iterator.next();
+        if (res.value && res.value.value.toString()) {
+			let jsonRes = {};
+			console.log(res.value.value.toString('utf8'));
+			jsonRes.Key = res.value.key;
+			try {
+				let tempToken = JSON.parse(res.value.value.toString('utf8'));
+				if(tempToken.owner==='available') {
+					availableToken = res.value.key;
+					break;
+				}
+			} catch (err) {
+				console.log(err);
+				jsonRes.Record = res.value.value.toString('utf8');
+			}
+		}
+		if (res.done) {
+			console.log('end of data');
+			await iterator.close();
+			console.info('End of First loop');
+			break;
+		}
     }
+	//Else check if there are any license tokens with expired timestamp
 	if(availableToken==null) {
-		
 	  while (true) {
-	  console.info('********************** In Second Loop *******************');
-
-	  let iterator = await stub.getStateByRange(startKey, endKey);
-      let res = await iterator.next();
-
-      if (res.value && res.value.value.toString()) {
-        let jsonRes = {};
-        console.log(res.value.value.toString('utf8'));
-
-        jsonRes.Key = res.value.key;
-        try {
-          let tempToken = JSON.parse(res.value.value.toString('utf8'));
-		  console.log(tempToken.timestamp);
-		  if(tempToken.timestamp == 2000000000) {
-			  console.info('They are same');
-			  availableToken = res.value.key;
-			  break;
-		  }
-        } catch (err) {
-          console.log(err);
-          jsonRes.Record = res.value.value.toString('utf8');
-        }
-        //allResults.push(jsonRes);
-      }
-      if (res.done) {
-        console.log('end of data');
-        await iterator.close();
-        console.info('End of second loop');
-        break;
-      }
-    }
-		
+		console.info('********************** In Second Loop *******************');
+		let iterator = await stub.getStateByRange(startKey, endKey);
+		let res = await iterator.next();
+		if (res.value && res.value.value.toString()) {
+			let jsonRes = {};
+			console.log(res.value.value.toString('utf8'));
+			jsonRes.Key = res.value.key;
+			try {
+				let tempToken = JSON.parse(res.value.value.toString('utf8'));
+				console.log(tempToken.timestamp);
+				var currentTimestamp = Date.now();
+				console.log(currentTimestamp);
+				if(tempToken.timestamp < currentTimestamp) {
+					availableToken = res.value.key;
+					break;
+				}
+			} catch (err) {
+				console.log(err);
+				jsonRes.Record = res.value.value.toString('utf8');
+			}
+		}		
+		if (res.done) {
+			console.log('end of data');
+			await iterator.close();
+			console.info('End of second loop');
+			break;
+		}
+	  }
 	}
-	if(availableToken !=null) {
-		
-	console.info('============= START : changeLicenseOwner ===========');
-
-    let licenseBytes = await stub.getState(availableToken);
-    let license = JSON.parse(licenseBytes);
-	license.timestamp = '2000000000';
-	license.owner = args[0];
 	
-    await stub.putState(availableToken, Buffer.from(JSON.stringify(license)));
-    console.info('============= END : changeLicenseOwner ===========');
-		
-		
-		
+	//If we find an available license token, assign it to the requester else throw error
+	if(availableToken !=null) {
+		console.info('============= START : changeLicenseOwner ===========');
+		let licenseBytes = await stub.getState(availableToken);
+		let license = JSON.parse(licenseBytes);
+		var availabilityTimestamp = Date.now();
+		availabilityTimestamp = availabilityTimestamp + 20000;
+		license.timestamp = availabilityTimestamp;
+		license.owner = args[0];
+		await stub.putState(availableToken, Buffer.from(JSON.stringify(license)));
+		console.info('============= END : changeLicenseOwner ===========');
+	} else {
+		throw new Error('Currently no license token available. Please try after some time');	
 	}
-		
-	  
-	  
   }
-  
 };
 
 shim.start(new Chaincode());
