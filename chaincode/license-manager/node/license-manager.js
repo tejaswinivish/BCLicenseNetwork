@@ -1,9 +1,3 @@
-/*
-# Copyright IBM Corp. All Rights Reserved.
-#
-# SPDX-License-Identifier: Apache-2.0
-*/
-
 'use strict';
 const shim = require('fabric-shim');
 const util = require('util');
@@ -63,7 +57,7 @@ let Chaincode = class {
 
     for (let i = 0; i < licenses.length; i++) {
       licenses[i].docType = 'licenseToken';
-      await stub.putState('licenseToken' + i, Buffer.from(JSON.stringify(licenses[i])));
+      await stub.putState('token' + i, Buffer.from(JSON.stringify(licenses[i])));
       console.info('Added <--> ', licenses[i]);
     }
     console.info('============= END : Initialize Ledger ===========');
@@ -71,8 +65,8 @@ let Chaincode = class {
 
   async queryAllTokens(stub, args) {
 
-    let startKey = 'licenseToken0';
-    let endKey = 'licenseToken2';
+    let startKey = 'token0';
+    let endKey = 'token10';
 
     let iterator = await stub.getStateByRange(startKey, endKey);
 
@@ -100,7 +94,7 @@ let Chaincode = class {
         return Buffer.from(JSON.stringify(allResults));
       }
     }
-  }
+  } 
 
   async changeTokenOwner(stub, args) {
     console.info('============= START : changeLicenseOwner ===========');
@@ -110,11 +104,106 @@ let Chaincode = class {
 
     let licenseBytes = await stub.getState(args[0]);
     let license = JSON.parse(licenseBytes);
-    license.owner = args[1];
+	license.timestamp = '2000000000';
+	license.owner = args[1];
 	
     await stub.putState(args[0], Buffer.from(JSON.stringify(license)));
     console.info('============= END : changeLicenseOwner ===========');
   }
+  
+  async findAvailableToken(stub, args) {
+	  console.info('============= START : findAvailableToken ===========');
+	  let startKey = 'token0';
+	  let endKey = 'token10';
+
+      let iterator = await stub.getStateByRange(startKey, endKey);
+	  
+	  let allResults = [];
+	  let availableToken=null;
+	while (true) {
+		console.info('********************** In first Loop *******************');
+      let res = await iterator.next();
+
+      if (res.value && res.value.value.toString()) {
+        let jsonRes = {};
+        console.log(res.value.value.toString('utf8'));
+
+        jsonRes.Key = res.value.key;
+        try {
+          let tempToken = JSON.parse(res.value.value.toString('utf8'));
+		  if(tempToken.owner==='available') {
+			  availableToken = res.value.key;
+			  break;
+		  }
+        } catch (err) {
+          console.log(err);
+          jsonRes.Record = res.value.value.toString('utf8');
+        }
+        //allResults.push(jsonRes);
+      }
+      if (res.done) {
+        console.log('end of data');
+        await iterator.close();
+        console.info('End of First loop');
+        break;
+      }
+    }
+	if(availableToken==null) {
+		
+	  while (true) {
+	  console.info('********************** In Second Loop *******************');
+
+	  let iterator = await stub.getStateByRange(startKey, endKey);
+      let res = await iterator.next();
+
+      if (res.value && res.value.value.toString()) {
+        let jsonRes = {};
+        console.log(res.value.value.toString('utf8'));
+
+        jsonRes.Key = res.value.key;
+        try {
+          let tempToken = JSON.parse(res.value.value.toString('utf8'));
+		  console.log(tempToken.timestamp);
+		  if(tempToken.timestamp == 2000000000) {
+			  console.info('They are same');
+			  availableToken = res.value.key;
+			  break;
+		  }
+        } catch (err) {
+          console.log(err);
+          jsonRes.Record = res.value.value.toString('utf8');
+        }
+        //allResults.push(jsonRes);
+      }
+      if (res.done) {
+        console.log('end of data');
+        await iterator.close();
+        console.info('End of second loop');
+        break;
+      }
+    }
+		
+	}
+	if(availableToken !=null) {
+		
+	console.info('============= START : changeLicenseOwner ===========');
+
+    let licenseBytes = await stub.getState(availableToken);
+    let license = JSON.parse(licenseBytes);
+	license.timestamp = '2000000000';
+	license.owner = args[0];
+	
+    await stub.putState(availableToken, Buffer.from(JSON.stringify(license)));
+    console.info('============= END : changeLicenseOwner ===========');
+		
+		
+		
+	}
+		
+	  
+	  
+  }
+  
 };
 
 shim.start(new Chaincode());
