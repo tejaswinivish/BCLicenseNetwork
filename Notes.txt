@@ -1,0 +1,60 @@
+links
+--------------
+hyperledger tutorial & samples - http://hyperledger-fabric.readthedocs.io/en/release-1.1/getting_started.html
+Installing hyperledger on windows  - https://medium.com/cochain/hyperledger-fabric-on-windows-10-26723116c636
+Glossary - http://hyperledger-fabric.readthedocs.io/en/latest/glossary.html#channel
+fabric-client - https://fabric-sdk-node.github.io/Client.html
+
+Commands
+--------
+mouting 
+sudo mount --bind /mnt/c /c
+
+first-network
+./byfn.sh -m generate
+./byfn.sh -m up
+./byfn.sh -m down
+restart network --> ./byfn.sh -m restart -c mychannel
+
+clean docker
+docker rm -f $(docker ps -aq)
+docker network prune
+docker rmi -f $(docker images -q)
+
+to get docker logs
+docker ps --> get the id from this command
+docker logs <id>
+
+Notes
+-------
+
+AnchorPeers - defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context ->configtx.yaml
+	
+chaincode - Applications interact with the blockchain ledger through chaincode(smart contract)
+
+
+
+meeting with lawrence 
+-------------------
+e-commerce model 
+business internal 
+
+moving to cloud, morphed into different models , supply license to 
+
+DNA - for upcoming block chain models
+
+elastic model
+
+algorithm?? 
+
+swagger 
+
+
+meeting with Matheen 
+------------
+hyperledger - kafka , fabric 
+go line, python 
+
+
