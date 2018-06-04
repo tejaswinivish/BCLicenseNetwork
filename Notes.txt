@@ -25,6 +25,9 @@ to get docker logs
 docker ps --> get the id from this command
 docker logs <id>
 
+License manager
+./startFabric.sh node
+
 Notes
 -------
 
