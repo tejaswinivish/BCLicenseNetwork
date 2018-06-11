@@ -27,6 +27,12 @@ docker logs <id>
 
 License manager
 ./startFabric.sh node
+node enrollAdmin.js
+node registerUser.js Andy
+node registerUser.js Anjali
+node RequestToken.js Andy -> request token for Andy
+node query.js Andy -> query all the tokens(user name is for user context)
+
 
 Notes
 -------
