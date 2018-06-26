@@ -24,6 +24,7 @@ var store_path = path.join(__dirname, 'hfc-key-store');
 console.log(' Store path:'+store_path);
 
 // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
+var registerTheUser = function(user, callback) {
 Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).then((state_store) => {
     // assign the store to the fabric client
@@ -72,11 +73,16 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
      return fabric_client.setUserContext(member_user);
 }).then(()=>{
      console.log(user +' was successfully registered and enrolled and is ready to intreact with the fabric network');
+     callback("true");
 
 }).catch((err) => {
     console.error('Failed to register: ' + err);
 	if(err.toString().indexOf('Authorization') > -1) {
 		console.error('Authorization failures may be caused by having admin credentials from a previous CA instance.\n' +
 		'Try again after deleting the contents of the store directory '+store_path);
-	}
+    }
+   callback("false");
 });
+};
+
+exports.registerTheUser = registerTheUser;

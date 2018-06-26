@@ -31,6 +31,7 @@ console.log('Store path:'+store_path);
 var tx_id = null;
 
 // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
+var requestTheToken = function(user, callback){
 Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).then((state_store) => {
 	// assign the store to the fabric client
@@ -153,10 +154,17 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	}
 
 	if(results && results[1] && results[1].event_status === 'VALID') {
-		console.log('Successfully committed the change to the ledger by the peer');
+		console.log('Successfully committed the change to the ledger by the peer : ' + JSON.stringify(results) + " " + JSON.stringify(results[1]));
+		callback("Token");
+
 	} else {
 		console.log('Transaction failed to be committed to the ledger due to ::'+results[1].event_status);
+		callback("false");
 	}
 }).catch((err) => {
 	console.error('Failed to invoke successfully :: ' + err);
+	callback("false");
 });
+};
+
+exports.requestTheToken = requestTheToken;

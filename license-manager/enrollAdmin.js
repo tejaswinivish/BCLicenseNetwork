@@ -24,6 +24,9 @@ var store_path = path.join(__dirname, 'hfc-key-store');
 console.log(' Store path:'+store_path);
 
 // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
+var enrollTheAdmin = function() {
+
+try {
 Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).then((state_store) => {
     // assign the store to the fabric client
@@ -73,3 +76,11 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).catch((err) => {
     console.error('Failed to enroll admin: ' + err);
 });
+}
+ catch(error) {
+		logger.error('Failed to register');
+		return 'failed '+error.toString();
+	}
+};
+
+exports.enrollTheAdmin = enrollTheAdmin;
