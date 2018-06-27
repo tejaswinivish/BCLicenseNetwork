@@ -1,0 +1,5 @@
+http://localhost:33000/enrollAdmin
+http://localhost:33000/registerUser/:userName
+http://localhost:33000/requestToken/:userName
+http://localhost:33000/queryToken/:userName
+http://localhost:33000/fetchHistory/:userName

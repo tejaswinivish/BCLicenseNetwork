@@ -6,10 +6,6 @@ var bodyParser = require('body-parser');
 var http = require('http');
 var util = require('util');
 var app = express();
-//var expressJWT = require('express-jwt');
-//var jwt = require('jsonwebtoken');
-//var bearerToken = require('express-bearer-token');
-//var cors = require('cors');
 
 var hfc = require('fabric-client');
 var host = 'localhost';
@@ -19,14 +15,11 @@ module.exports = app;
 var enrollAdmin = require('./enrollAdmin.js');
 var registerUser = require('./registerUser.js');
 var queryToken = require('./query.js');
+var fetchHistory = require('./fetchHistory.js');
 var requestToken = require('./RequestToken');
 
-//app.options('*', cors());
-//app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-//var routes = require("./routes/licenseRoutes.js")(app);
 
 var server = http.createServer(app).listen(port, function() {});
 console.log('****************** SERVER STARTED ************************');
@@ -91,6 +84,16 @@ app.get("/requestToken/:userName", function(req,res) {
 			
 	});
 });
+
+
+app.get("/fetchHistory/:userName", function(req,res) {
+	var userName = req.params.userName;
+	fetchHistory.fetchTheHistory(userName, function(result) {
+		res.send("History \n" +JSON.stringify(result));
+	});
+
+});
+
 	
 app.get("/queryToken/:userName", function(req,res) {
 	var userName = req.params.userName;

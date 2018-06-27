@@ -50,7 +50,12 @@ let Chaincode = class {
     console.info('============= START : Initialize Ledger ===========');
     let licenses = [];
     licenses.push({
-      licenseKey:  'abcdefg012345',
+      licenseKey:  'abcdef12345',
+	  timestamp: '00000000000000',
+	  owner: 'available'
+    });
+	licenses.push({
+      licenseKey:  'ghijklm67890',
 	  timestamp: '00000000000000',
 	  owner: 'available'
     });
@@ -105,7 +110,7 @@ let Chaincode = class {
     let licenseBytes = await stub.getState(args[0]);
     let license = JSON.parse(licenseBytes);
     var availabilityTimestamp = Date.now();
-    availabilityTimestamp = availabilityTimestamp + 20000;
+    availabilityTimestamp = availabilityTimestamp + 100000;
 	license.timestamp = availabilityTimestamp;
 	license.owner = args[1];
 	
@@ -149,9 +154,9 @@ let Chaincode = class {
     }
 	//Else check if there are any license tokens with expired timestamp
 	if(availableToken==null) {
+	  let iterator = await stub.getStateByRange(startKey, endKey);
 	  while (true) {
 		console.info('********************** In Second Loop *******************');
-		let iterator = await stub.getStateByRange(startKey, endKey);
 		let res = await iterator.next();
 		if (res.value && res.value.value.toString()) {
 			let jsonRes = {};
@@ -186,7 +191,7 @@ let Chaincode = class {
 		let licenseBytes = await stub.getState(availableToken);
 		let license = JSON.parse(licenseBytes);
 		var availabilityTimestamp = Date.now();
-		availabilityTimestamp = availabilityTimestamp + 20000;
+		availabilityTimestamp = availabilityTimestamp + 100000;
 		license.timestamp = availabilityTimestamp;
 		license.owner = args[0];
 		await stub.putState(availableToken, Buffer.from(JSON.stringify(license)));
@@ -195,6 +200,56 @@ let Chaincode = class {
 		throw new Error('Currently no license token available. Please try after some time');	
 	}
   }
-};
+
+  async getHistoryForLicense(stub, args, thisClass) {
+
+    let license = "token";
+    let isHistory = true;
+    //Modify the number of licenses based on your need
+    let numberOfLicenses = 2;
+    let allResults = [];
+    for (var i = 0;i<numberOfLicenses;i++) {
+      let iterator = await stub.getHistoryForKey(license + "" + i);
+      while (true) {
+        let res = await iterator.next();
+        console.log('Trying to get History');
+        if (res.value && res.value.value.toString()) {
+          let jsonRes = {};
+          console.log('************************');
+          console.log(res.value.value.toString('utf8'));
+
+          if (isHistory && isHistory === true) {
+            jsonRes.TxId = res.value.tx_id;
+            jsonRes.Timestamp = res.value.timestamp;
+            jsonRes.IsDelete = res.value.is_delete.toString();
+            try {
+              jsonRes.Value = JSON.parse(res.value.value.toString('utf8'));
+            } catch (err) {
+              console.log(err);
+              jsonRes.Value = res.value.value.toString('utf8');
+            }
+          } else {
+            jsonRes.Key = res.value.key;
+            try {
+              jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
+            } catch (err) {
+              console.log(err);
+              jsonRes.Record = res.value.value.toString('utf8');
+            }
+          }
+          allResults.push(jsonRes);
+        }
+        if (res.done) {
+          console.log('end of data------------');
+          await iterator.close();
+          console.log(allResults);
+          break;
+        }
+      }
+    }
+    
+    return Buffer.from(JSON.stringify(allResults));
+  }
+}
 
 shim.start(new Chaincode());
